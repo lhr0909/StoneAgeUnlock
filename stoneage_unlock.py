@@ -1,4 +1,4 @@
-import cyclone.web
+import os, sys, cyclone.web
 from twisted.python import log
 from twisted.internet import reactor
 from Handlers import IndexHandler, UnlockHandler, LoginHandler
