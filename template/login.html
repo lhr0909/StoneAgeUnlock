@@ -1,31 +1,79 @@
 <html>
 <title>
-    欢迎使用灰太狼的石器时代台服解锁器
+    解锁
 </title>
-<script src="http://code.jquery.com/jquery-1.8.3.min.js">
-</script>
+{% if wrong_password %}
+<body><p>密码错误! 请返回</p></body></html>
+{% else %}
+{% if len(locked_accounts) <= 0 %}
+    <p>所有帐号已经解锁</p></body></html>
+{% else %}
 <body>
-    {% for account in locked_accounts %}
-    <p>
-        {{ account[0] }} &nbsp;
-        <span class="img_bin" style="display: hidden;"> 
-            {{ account[1] }} 
-        </span>
+    <input id="cookies" type="hidden" name="cookies" value="{{ cookies }}" />
+    <input id="list_length" type="hidden" name="length" value="{{ len(locked_accounts) }}" />
+    <p>解锁密码: <input id="unlock_password" type="password" name="unlock_password" /></p>
+    {% for idx, account in enumerate(locked_accounts) %}
+    <p id="account{{ idx }}">
+        <input type="hidden" id="unlock_url{{ idx }}" name="unlock_url{{ idx }}" value="{{ account }}" />
+        <input type="hidden" id="formhash{{ idx }}" name="formhash{{ idx }}" value="" />
+        验证码{{ idx + 1 }}: <input class="verify_code" id="verify_code{{ idx }}" index="{{ idx }}" type="text" name="verify_code{{ idx }}" /> &nbsp;
+        <span class="img_bin" id="img_bin{{ idx }}"></span>
+        <a class="unlock_action" index="{{ idx }}" href="#">解锁</a>
     </p>
     {% end %}
 </body>
+<script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
 <script type="text/javascript">
 function hexToBase64(str) {
     return btoa(String.fromCharCode.apply(null, str.replace(/\r|\n/g, "").replace(/([\da-fA-F]{2}) ?/g, "0x$1 ").replace(/ +$/, "").split(" ")));
 }
 
+var length;
+var cookies;
+var unlock_password;
+
 $(document).ready(function(){
-    $(".img_bin").each(function(){
-        var img_bin = $(this).html();
-        var img = new Image();
-        img.src = "data:image/jpeg;base64," + hexToBase64(img_bin);
-        $(this).html(img);
-    });
+    length = $("#list_length").attr("value");
+    cookies = $("#cookies").attr("value");
 });
+
+
+$(".verify_code").focus(function(){
+    $(".img_bin").each(function(){
+        $(this).html("");
+    });
+    var idx = $(this).attr("index");
+    var timestamp = (new Date()).valueOf();
+    $.post(
+        "/fetch/" + timestamp,
+        {
+            "cookies" : cookies
+        },
+        function (data, status, xhr) {
+            var img = new Image();
+            img.src = "data:image/jpeg;base64," + hexToBase64(data);
+            $("#img_bin" + idx).html(img);
+        }
+    );
+});
+
+$(".unlock_action").click(function() {
+    var idx = $(this).attr("index");
+    $.post(
+        "/unlock",
+        {
+            "cookies" : cookies,
+            "unlock_url" : $("#unlock_url" + idx).attr("value"),
+            "unlock_password" : $("#unlock_password").attr("value"),
+            "verify_code" : $("#verify_code" + idx).attr("value")
+        },
+        function (data, status, xhr) {
+            $("#account" + idx).html(data);
+        }
+    );
+});
+
 </script>
 </html>
+{% end %}
+{% end %}

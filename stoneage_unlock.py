@@ -1,14 +1,15 @@
 import os, sys, cyclone.web
 from twisted.python import log
 from twisted.internet import reactor
-from Handlers import IndexHandler, UnlockHandler, LoginHandler
+from Handlers import IndexHandler, UnlockHandler, LoginHandler, FetchHandler
 
 class Application(cyclone.web.Application):
     def __init__(self):
         handlers = [
             (r"/", IndexHandler.IndexHandler),
             (r"/login", LoginHandler.LoginHandler),
-            (r"/unlock/(.*)", UnlockHandler.UnlockHandler),
+            (r"/fetch/(.*)", FetchHandler.FetchHandler),
+            (r"/unlock", UnlockHandler.UnlockHandler),
         ]
 
         settings = {
