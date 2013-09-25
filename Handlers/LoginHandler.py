@@ -19,9 +19,17 @@ class LoginHandler(cyclone.web.RequestHandler):
         password = self.get_argument("password", None)
         wrong_password = False
 
-        r = requests.post(base_url + 'member.php?ac=login', 
+        login_url = base_url + 'member.php?ac=login'
+        login_page = requests.get(login_url, headers=headers).text
+        soup = BeautifulSoup(login_page)
+        for input_box in soup.find_all("input"):
+            if input_box.get("name") == "formhash":
+                formhash = input_box.get("value")
+                break
+
+        r = requests.post(login_url, 
             data={
-                "formhash" : "f94c7df0", 
+                "formhash" : formhash, 
                 "username" : username,
                 "pwd" : password,
                 "loginsubmit" : "+"
